@@ -1,0 +1,1730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost & Found Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0f1a;  
+            --bg-secondary: #111827;
+            --fg: #f1f5f9;
+            --muted: #64748b;
+            --accent: #06d6a0;
+            --accent-dim: rgba(6, 214, 160, 0.15);
+            --card: rgba(17, 24, 39, 0.8);
+            --border: rgba(100, 116, 139, 0.2);
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* Background Pattern */
+        .bg-pattern {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(6, 214, 160, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(100, 116, 139, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(100, 116, 139, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--muted);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+
+        /* Cards */
+        .glass-card {
+            background: var(--card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(6, 214, 160, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #059669);
+            color: var(--bg);
+            font-weight: 600;
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent, rgba(255,255,255,0.2));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn-primary:hover::before {
+            opacity: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(6, 214, 160, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--fg);
+            font-weight: 500;
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-dim);
+        }
+
+        /* Input Fields */
+        .input-field {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--fg);
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+        }
+
+        .input-field::placeholder {
+            color: var(--muted);
+        }
+
+        select.input-field {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 18px;
+        }
+
+        /* Status Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .badge-pending {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+        }
+
+        .badge-found {
+            background: rgba(6, 214, 160, 0.15);
+            color: var(--accent);
+        }
+
+        .badge-unclaimed {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+        }
+
+        .badge-claimed {
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+        }
+
+        .badge-approved {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+        }
+
+        .badge-rejected {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+        }
+
+        /* Navigation */
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            border-radius: 12px;
+            color: var(--muted);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: var(--accent-dim);
+            color: var(--accent);
+        }
+
+        .nav-link.active {
+            border-left: 3px solid var(--accent);
+        }
+
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 16px 20px;
+            background: rgba(15, 23, 42, 0.6);
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table th:first-child {
+            border-top-left-radius: 12px;
+        }
+
+        .data-table th:last-child {
+            border-top-right-radius: 12px;
+        }
+
+        .data-table td {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s ease;
+        }
+
+        .data-table tr:hover td {
+            background: rgba(6, 214, 160, 0.03);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        /* Stats Card Animation */
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-number {
+            animation: countUp 0.6s ease forwards;
+        }
+
+        /* Floating Particles */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 8s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+            50% { transform: translateY(-100px) translateX(50px); opacity: 0.6; }
+        }
+
+        /* Tab Styles */
+        .tab-btn {
+            padding: 12px 28px;
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .tab-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+        }
+
+        .tab-btn.active::after {
+            width: 60%;
+        }
+
+        .tab-btn:hover {
+            color: var(--fg);
+        }
+
+        /* Page Transitions */
+        .page {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hero Section */
+        .hero-title {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 700;
+            line-height: 1.1;
+            background: linear-gradient(135deg, var(--fg) 0%, var(--muted) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-accent {
+            background: linear-gradient(135deg, var(--accent), #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Mobile Menu */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--fg);
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        @media (max-width: 1024px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                height: 100vh;
+                z-index: 999;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.open {
+                left: 0;
+            }
+        }
+
+        /* Entity Diagram */
+        .entity-box {
+            background: linear-gradient(145deg, rgba(17, 24, 39, 0.95), rgba(30, 41, 59, 0.9));
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            min-width: 180px;
+            transition: all 0.3s ease;
+        }
+
+        .entity-box:hover {
+            border-color: var(--accent);
+            transform: scale(1.02);
+            box-shadow: 0 0 40px rgba(6, 214, 160, 0.15);
+        }
+
+        .entity-header {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--accent);
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 12px;
+        }
+
+        .entity-attr {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .entity-attr.pk {
+            color: #fbbf24;
+        }
+
+        .entity-attr.fk {
+            color: #60a5fa;
+        }
+
+        .relation-line {
+            stroke: var(--muted);
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 5, 5;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background -->
+    <div class="bg-pattern"></div>
+    <div class="bg-grid"></div>
+
+    <!-- Main Layout -->
+    <div class="flex min-h-screen relative z-10">
+        <!-- Sidebar -->
+        <aside class="sidebar w-72 bg-[var(--bg-secondary)] border-r border-[var(--border)] p-6 flex flex-col fixed lg:relative h-screen" id="sidebar">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-[var(--accent)] to-emerald-600 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-[var(--bg)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg">LostFound</h1>
+                    <p class="text-xs text-[var(--muted)]">Management System</p>
+                </div>
+            </div>
+
+            <nav class="flex-1 space-y-2">
+                <a href="#" class="nav-link active" data-page="dashboard">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                    </svg>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-link" data-page="lost-items">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Lost Items
+                </a>
+                <a href="#" class="nav-link" data-page="found-items">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Found Items
+                </a>
+                <a href="#" class="nav-link" data-page="claims">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    Claims
+                </a>
+                <a href="#" class="nav-link" data-page="schema">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+                    </svg>
+                    Database Schema
+                </a>
+            </nav>
+
+            <div class="mt-auto pt-6 border-t border-[var(--border)]">
+                <div class="flex items-center gap-3 p-3 rounded-xl bg-[var(--accent-dim)] mb-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--accent)] to-emerald-600 flex items-center justify-center text-[var(--bg)] font-bold">
+                        A
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-medium truncate" id="adminUsername">Admin</p>
+                        <p class="text-xs text-[var(--muted)] truncate">Administrator</p>
+                    </div>
+                </div>
+                <button onclick="logout()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[var(--muted)] hover:text-red-400 hover:bg-red-500/10 transition-all text-sm font-medium">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 lg:ml-0 ml-0 p-6 lg:p-10 overflow-auto">
+            <!-- Header -->
+            <header class="flex items-center justify-between mb-8">
+                <button class="mobile-menu-btn lg:hidden" id="menuToggle">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+                <div>
+                    <h2 class="text-2xl font-bold" id="pageTitle">Dashboard</h2>
+                    <p class="text-[var(--muted)] text-sm mt-1">Welcome back! Here's what's happening.</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="btn-primary" onclick="openModal('reportModal')">
+                        + Report Item
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Page -->
+            <div class="page active" id="dashboard-page">
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div class="glass-card p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-full">+12%</span>
+                        </div>
+                        <p class="text-3xl font-bold stat-number" id="stat-lost">47</p>
+                        <p class="text-[var(--muted)] text-sm mt-1">Total Lost Reports</p>
+                    </div>
+
+                    <div class="glass-card p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-full">+8%</span>
+                        </div>
+                        <p class="text-3xl font-bold stat-number" id="stat-found">38</p>
+                        <p class="text-[var(--muted)] text-sm mt-1">Total Found Items</p>
+                    </div>
+
+                    <div class="glass-card p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
+                            </div>
+                            <span class="text-xs text-blue-400 bg-blue-400/10 px-2 py-1 rounded-full">Active</span>
+                        </div>
+                        <p class="text-3xl font-bold stat-number" id="stat-claims">15</p>
+                        <p class="text-[var(--muted)] text-sm mt-1">Pending Claims</p>
+                    </div>
+
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    <div class="xl:col-span-2 glass-card p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-semibold">Recent Reports</h3>
+                            <button class="btn-secondary text-sm py-2 px-4" onclick="navigateTo('lost-items')">View All</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Type</th>
+                                        <th>Location</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentReportsTable">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6">
+                        <h3 class="text-lg font-semibold mb-6">Quick Actions</h3>
+                        <div class="space-y-3">
+                            <button class="w-full btn-secondary text-left flex items-center gap-3" onclick="openModal('reportModal')">
+                                <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                                Report Lost Item
+                            </button>
+                            <button class="w-full btn-secondary text-left flex items-center gap-3" onclick="openModal('foundModal')">
+                                <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Report Found Item
+                            </button>
+                            <button class="w-full btn-secondary text-left flex items-center gap-3" onclick="navigateTo('claims')">
+                                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
+                                Review Claims
+                            </button>
+                            <button class="w-full btn-secondary text-left flex items-center gap-3" onclick="navigateTo('schema')">
+                                <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+                                </svg>
+                                View Schema
+                            </button>
+                        </div>
+
+                        <div class="mt-8 pt-6 border-t border-[var(--border)]">
+                            <h4 class="text-sm font-semibold text-[var(--muted)] mb-4">System Health</h4>
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="flex justify-between text-sm mb-2">
+                                        <span>Database</span>
+                                        <span class="text-emerald-400">Healthy</span>
+                                    </div>
+                                    <div class="h-2 bg-[var(--bg)] rounded-full overflow-hidden">
+                                        <div class="h-full w-[92%] bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-sm mb-2">
+                                        <span>API Response</span>
+                                        <span class="text-emerald-400">45ms</span>
+                                    </div>
+                                    <div class="h-2 bg-[var(--bg)] rounded-full overflow-hidden">
+                                        <div class="h-full w-[88%] bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lost Items Page -->
+            <div class="page" id="lost-items-page">
+                <div class="glass-card p-6 mb-6">
+                    <div class="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                        <div class="flex gap-3 flex-wrap">
+                            <input type="text" placeholder="Search items..." class="input-field w-64" id="searchLost">
+                            <select class="input-field w-40" id="filterCategory">
+                                <option value="">All Categories</option>
+                                <option value="Mobile">Mobile</option>
+                                <option value="Wallet">Wallet</option>
+                                <option value="Bag">Bag</option>
+                                <option value="Keys">Keys</option>
+                                <option value="Accessories">Accessories</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Documents">Documents</option>
+                            </select>
+                            <select class="input-field w-36" id="filterStatus">
+                                <option value="">All Status</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Found">Found</option>
+                            </select>
+                        </div>
+                        <button class="btn-primary" onclick="openModal('reportModal')">+ New Lost Report</button>
+                    </div>
+                </div>
+
+                <div class="glass-card overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Report ID</th>
+                                    <th>Item Name</th>
+                                    <th>Category</th>
+                                    <th>Location Lost</th>
+                                    <th>Date Lost</th>
+                                    <th>Reporter</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lostItemsTable">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Found Items Page -->
+            <div class="page" id="found-items-page">
+                <div class="glass-card p-6 mb-6">
+                    <div class="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                        <div class="flex gap-3 flex-wrap">
+                            <input type="text" placeholder="Search items..." class="input-field w-64" id="searchFound">
+                            <select class="input-field w-40" id="filterFoundCategory">
+                                <option value="">All Categories</option>
+                                <option value="Mobile">Mobile</option>
+                                <option value="Wallet">Wallet</option>
+                                <option value="Bag">Bag</option>
+                                <option value="Keys">Keys</option>
+                                <option value="Accessories">Accessories</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Documents">Documents</option>
+                            </select>
+                            <select class="input-field w-36" id="filterFoundStatus">
+                                <option value="">All Status</option>
+                                <option value="Unclaimed">Unclaimed</option>
+                                <option value="Claimed">Claimed</option>
+                            </select>
+                        </div>
+                        <button class="btn-primary" onclick="openModal('foundModal')">+ Report Found Item</button>
+                    </div>
+                </div>
+
+                <div class="glass-card overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Report ID</th>
+                                    <th>Item Name</th>
+                                    <th>Category</th>
+                                    <th>Location Found</th>
+                                    <th>Date Found</th>
+                                    <th>Finder</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="foundItemsTable">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Claims Page -->
+            <div class="page" id="claims-page">
+                <div class="glass-card p-6 mb-6">
+                    <div class="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                        <div class="flex gap-3 flex-wrap">
+                            <select class="input-field w-44" id="filterClaimStatus">
+                                <option value="">All Status</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Claim ID</th>
+                                    <th>Item</th>
+                                    <th>Claimant</th>
+                                    <th>Claim Date</th>
+                                    <th>Verification</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="claimsTable">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Schema Page -->
+            <div class="page" id="schema-page">
+                <div class="glass-card p-8 mb-8">
+                    <h3 class="text-2xl font-bold mb-2">Entity Relationship Diagram</h3>
+                    <p class="text-[var(--muted)] mb-8">Visual representation of the Lost & Found database schema</p>
+                    
+                    <div class="relative overflow-x-auto pb-8">
+                        <div class="flex flex-wrap gap-8 justify-center min-w-max p-8">
+                            <!-- USER Entity -->
+                            <div class="entity-box">
+                                <div class="entity-header">USER</div>
+                                <div class="entity-attr pk"><span class="text-yellow-400">PK</span> User_ID</div>
+                                <div class="entity-attr">Name</div>
+                                <div class="entity-attr">Email</div>
+                                <div class="entity-attr">Phone</div>
+                                <div class="entity-attr">Address</div>
+                            </div>
+
+                            <!-- ITEM Entity -->
+                            <div class="entity-box">
+                                <div class="entity-header">ITEM</div>
+                                <div class="entity-attr pk"><span class="text-yellow-400">PK</span> Item_ID</div>
+                                <div class="entity-attr">Item_Name</div>
+                                <div class="entity-attr">Description</div>
+                                <div class="entity-attr">Category</div>
+                                <div class="entity-attr">Color</div>
+                                <div class="entity-attr">Date</div>
+                            </div>
+
+                            <!-- LOST_REPORT Entity -->
+                            <div class="entity-box">
+                                <div class="entity-header">LOST_REPORT</div>
+                                <div class="entity-attr pk"><span class="text-yellow-400">PK</span> Lost_ID</div>
+                                <div class="entity-attr fk"><span class="text-blue-400">FK</span> User_ID</div>
+                                <div class="entity-attr fk"><span class="text-blue-400">FK</span> Item_ID</div>
+                                <div class="entity-attr">Date_Lost</div>
+                                <div class="entity-attr">Location_Lost</div>
+                                <div class="entity-attr">Status</div>
+                            </div>
+
+                            <!-- FOUND_REPORT Entity -->
+                            <div class="entity-box">
+                                <div class="entity-header">FOUND_REPORT</div>
+                                <div class="entity-attr pk"><span class="text-yellow-400">PK</span> Found_ID</div>
+                                <div class="entity-attr fk"><span class="text-blue-400">FK</span> User_ID</div>
+                                <div class="entity-attr fk"><span class="text-blue-400">FK</span> Item_ID</div>
+                                <div class="entity-attr">Date_Found</div>
+                                <div class="entity-attr">Location_Found</div>
+                                <div class="entity-attr">Status</div>
+                            </div>
+
+                            <!-- CLAIM Entity -->
+                            <div class="entity-box">
+                                <div class="entity-header">CLAIM</div>
+                                <div class="entity-attr pk"><span class="text-yellow-400">PK</span> Claim_ID</div>
+                                <div class="entity-attr fk"><span class="text-blue-400">FK</span> Found_ID</div>
+                                <div class="entity-attr fk"><span class="text-blue-400">FK</span> User_ID</div>
+                                <div class="entity-attr">Claim_Date</div>
+                                <div class="entity-attr">Verification_Status</div>
+                            </div>
+
+                            <!-- ADMIN Entity -->
+                            <div class="entity-box">
+                                <div class="entity-header">ADMIN</div>
+                                <div class="entity-attr pk"><span class="text-yellow-400">PK</span> Admin_ID</div>
+                                <div class="entity-attr">Name</div>
+                                <div class="entity-attr">Email</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Relationships -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass-card p-6">
+                        <h4 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                            </svg>
+                            Relationships
+                        </h4>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between p-3 bg-[var(--bg)] rounded-lg">
+                                <span class="text-sm">USER → LOST_REPORT</span>
+                                <span class="badge badge-pending">1 : M</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-[var(--bg)] rounded-lg">
+                                <span class="text-sm">USER → FOUND_REPORT</span>
+                                <span class="badge badge-pending">1 : M</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-[var(--bg)] rounded-lg">
+                                <span class="text-sm">USER → CLAIM</span>
+                                <span class="badge badge-pending">1 : M</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-[var(--bg)] rounded-lg">
+                                <span class="text-sm">ITEM → LOST_REPORT</span>
+                                <span class="badge badge-found">1 : M</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-[var(--bg)] rounded-lg">
+                                <span class="text-sm">ITEM → FOUND_REPORT</span>
+                                <span class="badge badge-found">1 : M</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-[var(--bg)] rounded-lg">
+                                <span class="text-sm">CLAIM → FOUND_REPORT</span>
+                                <span class="badge badge-unclaimed">M : 1</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6">
+                        <h4 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                            SQL Reference
+                        </h4>
+                        <div class="bg-[var(--bg)] rounded-lg p-4 font-mono text-sm overflow-x-auto">
+                            <pre class="text-[var(--muted)]"><code><span class="text-purple-400">CREATE TABLE</span> <span class="text-[var(--accent)]">USER</span> (
+  User_ID <span class="text-blue-400">INT PRIMARY KEY</span>,
+  Name <span class="text-blue-400">VARCHAR</span>(<span class="text-yellow-400">100</span>),
+  Email <span class="text-blue-400">VARCHAR</span>(<span class="text-yellow-400">150</span>) <span class="text-blue-400">UNIQUE</span>,
+  Phone <span class="text-blue-400">VARCHAR</span>(<span class="text-yellow-400">20</span>),
+  Address <span class="text-blue-400">TEXT</span>
+);
+
+<span class="text-purple-400">CREATE TABLE</span> <span class="text-[var(--accent)]">ITEM</span> (
+  Item_ID <span class="text-blue-400">INT PRIMARY KEY</span>,
+  Item_Name <span class="text-blue-400">VARCHAR</span>(<span class="text-yellow-400">100</span>),
+  Description <span class="text-blue-400">TEXT</span>,
+  Category <span class="text-blue-400">VARCHAR</span>(<span class="text-yellow-400">50</span>),
+  Color <span class="text-blue-400">VARCHAR</span>(<span class="text-yellow-400">30</span>)
+);</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Report Lost Modal -->
+    <div class="modal-overlay" id="reportModal">
+        <div class="modal-content">
+            <div class="p-6 border-b border-[var(--border)] flex items-center justify-between">
+                <h3 class="text-xl font-bold">Report Lost Item</h3>
+                <button onclick="closeModal('reportModal')" class="text-[var(--muted)] hover:text-[var(--fg)] transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <form id="lostForm" class="p-6 space-y-5">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Item Name *</label>
+                    <input type="text" name="itemName" class="input-field" required placeholder="e.g., iPhone 14 Pro">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Category *</label>
+                        <select name="category" class="input-field" required>
+                            <option value="">Select...</option>
+                            <option value="Mobile">Mobile</option>
+                            <option value="Wallet">Wallet</option>
+                            <option value="Bag">Bag</option>
+                            <option value="Keys">Keys</option>
+                            <option value="Accessories">Accessories</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Documents">Documents</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Color</label>
+                        <input type="text" name="color" class="input-field" placeholder="e.g., Black">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Description</label>
+                    <textarea name="description" class="input-field" rows="3" placeholder="Describe the item in detail..."></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Date Lost *</label>
+                        <input type="date" name="dateLost" class="input-field" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Location Lost *</label>
+                        <input type="text" name="locationLost" class="input-field" required placeholder="e.g., Central Library">
+                    </div>
+                </div>
+                <div class="flex gap-4 pt-4">
+                    <button type="button" onclick="closeModal('reportModal')" class="btn-secondary flex-1">Cancel</button>
+                    <button type="submit" class="btn-primary flex-1">Submit Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Report Found Modal -->
+    <div class="modal-overlay" id="foundModal">
+        <div class="modal-content">
+            <div class="p-6 border-b border-[var(--border)] flex items-center justify-between">
+                <h3 class="text-xl font-bold">Report Found Item</h3>
+                <button onclick="closeModal('foundModal')" class="text-[var(--muted)] hover:text-[var(--fg)] transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <form id="foundForm" class="p-6 space-y-5">
+                <!-- Mode Toggle -->
+                <div class="flex rounded-xl overflow-hidden border border-[var(--border)]">
+                    <button type="button" id="freshModeBtn" onclick="setFoundMode('fresh')"
+                        class="flex-1 py-2.5 text-sm font-semibold transition-colors"
+                        style="background:var(--accent);color:var(--bg)">
+                        Fresh Item
+                    </button>
+                    <button type="button" id="matchModeBtn" onclick="setFoundMode('match')"
+                        class="flex-1 py-2.5 text-sm font-semibold transition-colors"
+                        style="background:transparent;color:var(--muted)">
+                        Match Lost Report
+                    </button>
+                </div>
+
+                <!-- Match Section -->
+                <div id="matchSection" style="display:none">
+                    <label class="block text-sm font-medium mb-2">Select Lost Report *</label>
+                    <select id="matchLostSelect" class="input-field">
+                        <option value="">Loading lost reports...</option>
+                    </select>
+                    <div id="matchedDetails" class="mt-3 p-3 rounded-xl text-sm space-y-1" style="display:none;background:var(--accent-dim);border:1px solid var(--border)">
+                        <p><span class="text-[var(--muted)]">Item: </span><span id="matchedItemName" class="font-semibold"></span></p>
+                        <p><span class="text-[var(--muted)]">Category: </span><span id="matchedCategory"></span></p>
+                        <p><span class="text-[var(--muted)]">Color: </span><span id="matchedColor"></span></p>
+                        <p><span class="text-[var(--muted)]">Description: </span><span id="matchedDescription"></span></p>
+                    </div>
+                    <p class="text-xs text-[var(--muted)] mt-2">Submitting will auto-create a pending claim for the original reporter.</p>
+                </div>
+
+                <!-- Fresh Item Section -->
+                <div id="freshSection">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Item Name *</label>
+                            <input type="text" name="itemName" class="input-field" required placeholder="e.g., Black Wallet">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Category *</label>
+                                <select name="category" class="input-field" required>
+                                    <option value="">Select...</option>
+                                    <option value="Mobile">Mobile</option>
+                                    <option value="Wallet">Wallet</option>
+                                    <option value="Bag">Bag</option>
+                                    <option value="Keys">Keys</option>
+                                    <option value="Accessories">Accessories</option>
+                                    <option value="Electronics">Electronics</option>
+                                    <option value="Documents">Documents</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Color</label>
+                                <input type="text" name="color" class="input-field" placeholder="e.g., Brown">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Description</label>
+                            <textarea name="description" class="input-field" rows="3" placeholder="Describe what you found..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Common Fields -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Date Found *</label>
+                        <input type="date" name="dateFound" class="input-field" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Location Found *</label>
+                        <input type="text" name="locationFound" class="input-field" required placeholder="e.g., Bus Stop #5">
+                    </div>
+                </div>
+                <div class="flex gap-4 pt-4">
+                    <button type="button" onclick="closeModal('foundModal')" class="btn-secondary flex-1">Cancel</button>
+                    <button type="submit" class="btn-primary flex-1">Submit Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+
+    <!-- Claim Modal -->
+    <div class="modal-overlay" id="claimModal">
+        <div class="modal-content">
+            <div class="p-6 border-b border-[var(--border)] flex items-center justify-between">
+                <h3 class="text-xl font-bold">Submit Claim</h3>
+                <button onclick="closeModal('claimModal')" class="text-[var(--muted)] hover:text-[var(--fg)] transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <form id="claimForm" class="p-6 space-y-5">
+                <input type="hidden" name="foundId" id="claimFoundId">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Proof of Ownership</label>
+                    <textarea name="proof" class="input-field" rows="4" required placeholder="Describe how you can prove this item belongs to you..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Additional Details</label>
+                    <textarea name="details" class="input-field" rows="3" placeholder="Any additional information that can help verify your claim..."></textarea>
+                </div>
+                <div class="flex gap-4 pt-4">
+                    <button type="button" onclick="closeModal('claimModal')" class="btn-secondary flex-1">Cancel</button>
+                    <button type="submit" class="btn-primary flex-1">Submit Claim</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 glass-card px-6 py-4 flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <svg class="w-5 h-5 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span id="toastMessage">Action completed successfully!</span>
+    </div>
+
+    <script>
+        // ==================== DATA CACHE (for search/filter) ====================
+        let lostCache   = [];
+        let foundCache  = [];
+        let claimsCache = [];
+
+        // ==================== UTILITY ====================
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            return String(dateStr).slice(0, 10);
+        }
+
+        function emptyRow(cols, msg) {
+            return `<tr><td colspan="${cols}" class="text-center text-[var(--muted)] py-10">${msg}</td></tr>`;
+        }
+
+        function showToast(message, isError = false) {
+            const toast   = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            const icon    = toast.querySelector('svg');
+            toastMsg.textContent = message;
+            icon.classList.toggle('text-red-400', isError);
+            icon.classList.toggle('text-[var(--accent)]', !isError);
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
+        // ==================== MODAL ====================
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        });
+
+        // ==================== NAVIGATION ====================
+
+        function navigateTo(page) {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.toggle('active', link.dataset.page === page);
+            });
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const target = document.getElementById(`${page}-page`);
+            if (target) target.classList.add('active');
+
+            const titles = {
+                dashboard: 'Dashboard', 'lost-items': 'Lost Items',
+                'found-items': 'Found Items', claims: 'Claims Management',
+                schema: 'Database Schema'
+            };
+            document.getElementById('pageTitle').textContent = titles[page] || 'Dashboard';
+            document.getElementById('sidebar').classList.remove('open');
+            loadPageData(page);
+        }
+
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => { e.preventDefault(); navigateTo(link.dataset.page); });
+        });
+
+        document.getElementById('menuToggle').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('open');
+        });
+
+        // ==================== LOAD PAGE DATA ====================
+
+        function loadPageData(page) {
+            switch (page) {
+                case 'dashboard':   loadDashboard();   break;
+                case 'lost-items':  loadLostItems();   break;
+                case 'found-items': loadFoundItems();  break;
+                case 'claims':      loadClaims();      break;
+            }
+        }
+
+        // ==================== DASHBOARD ====================
+
+        async function loadDashboard() {
+            try {
+                const safeJson = async (url) => {
+                    const r = await fetch(url);
+                    const d = await r.json();
+                    return Array.isArray(d) ? d : [];
+                };
+                const [lost, found, claims] = await Promise.all([
+                    safeJson('/lost'), safeJson('/found'), safeJson('/claims')
+                ]);
+
+                document.getElementById('stat-lost').textContent   = lost.length;
+                document.getElementById('stat-found').textContent  = found.length;
+                document.getElementById('stat-claims').textContent = claims.filter(c => c.verification_status === 'Pending').length;
+
+                const tbody = document.getElementById('recentReportsTable');
+                const recent = lost.slice(0, 5);
+                if (!recent.length) {
+                    tbody.innerHTML = emptyRow(5, 'No reports yet');
+                    return;
+                }
+                tbody.innerHTML = recent.map(r => `
+                    <tr>
+                        <td class="font-medium">${r.item_name}</td>
+                        <td><span class="badge badge-pending">Lost</span></td>
+                        <td>${r.location_lost}</td>
+                        <td>${formatDate(r.date_lost)}</td>
+                        <td><span class="badge ${r.status === 'Found' ? 'badge-found' : 'badge-pending'}">${r.status}</span></td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error(e);
+                showToast('Could not connect to the server. Make sure the backend is running.', true);
+            }
+        }
+
+        // ==================== LOST ITEMS ====================
+
+        async function loadLostItems() {
+            try {
+                const res  = await fetch('/lost');
+                lostCache  = await res.json();
+                renderLostTable(lostCache);
+            } catch (e) {
+                console.error(e);
+                showToast('Failed to load lost items', true);
+            }
+        }
+
+        function renderLostTable(data) {
+            const tbody = document.getElementById('lostItemsTable');
+            if (!data.length) { tbody.innerHTML = emptyRow(8, 'No lost items reported yet'); return; }
+            tbody.innerHTML = data.map(r => `
+                <tr>
+                    <td class="font-mono text-sm text-[var(--accent)]">${r.lost_id}</td>
+                    <td class="font-medium">${r.item_name}</td>
+                    <td>${r.category || '-'}</td>
+                    <td>${r.location_lost}</td>
+                    <td>${formatDate(r.date_lost)}</td>
+                    <td>${r.reporter_name || '-'}</td>
+                    <td><span class="badge ${r.status === 'Found' ? 'badge-found' : 'badge-pending'}">${r.status}</span></td>
+                    <td>
+                        <button onclick="deleteLostReport(${r.lost_id})" class="text-red-400 hover:text-red-300 transition-colors" title="Delete">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ==================== FOUND ITEMS ====================
+
+        async function loadFoundItems() {
+            try {
+                const res   = await fetch('/found');
+                foundCache  = await res.json();
+                renderFoundTable(foundCache);
+            } catch (e) {
+                console.error(e);
+                showToast('Failed to load found items', true);
+            }
+        }
+
+        function renderFoundTable(data) {
+            const tbody = document.getElementById('foundItemsTable');
+            if (!data.length) { tbody.innerHTML = emptyRow(8, 'No found items reported yet'); return; }
+            tbody.innerHTML = data.map(r => `
+                <tr>
+                    <td class="font-mono text-sm text-[var(--accent)]">${r.found_id}</td>
+                    <td class="font-medium">${r.item_name}</td>
+                    <td>${r.category || '-'}</td>
+                    <td>${r.location_found}</td>
+                    <td>${formatDate(r.date_found)}</td>
+                    <td>${r.finder_name || '-'}</td>
+                    <td><span class="badge ${r.status === 'Claimed' ? 'badge-claimed' : 'badge-unclaimed'}">${r.status}</span></td>
+                    <td>
+                        ${r.status === 'Unclaimed' ? `
+                            <button onclick="openClaimModal(${r.found_id})" class="text-[var(--accent)] hover:text-emerald-300 transition-colors mr-2" title="Submit Claim">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </button>` : ''}
+                        <button onclick="deleteFoundReport(${r.found_id})" class="text-red-400 hover:text-red-300 transition-colors" title="Delete">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ==================== CLAIMS ====================
+
+        async function loadClaims() {
+            try {
+                const res    = await fetch('/claims');
+                claimsCache  = await res.json();
+                renderClaimsTable(claimsCache);
+            } catch (e) {
+                console.error(e);
+                showToast('Failed to load claims', true);
+            }
+        }
+
+        function renderClaimsTable(data) {
+            const tbody = document.getElementById('claimsTable');
+            if (!data.length) { tbody.innerHTML = emptyRow(6, 'No claims submitted yet'); return; }
+            tbody.innerHTML = data.map(c => {
+                const statusClass = c.verification_status === 'Approved' ? 'badge-approved' :
+                                    c.verification_status === 'Rejected' ? 'badge-rejected' : 'badge-pending';
+                return `
+                    <tr>
+                        <td class="font-mono text-sm text-[var(--accent)]">${c.claim_id}</td>
+                        <td class="font-medium">${c.item_name}</td>
+                        <td>${c.claimant_name || '-'}</td>
+                        <td>${formatDate(c.claim_date)}</td>
+                        <td><span class="badge ${statusClass}">${c.verification_status}</span></td>
+                        <td>
+                            ${c.verification_status === 'Pending' ? `
+                                <button onclick="approveClaim(${c.claim_id})" class="text-emerald-400 hover:text-emerald-300 mr-2" title="Approve">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </button>
+                                <button onclick="rejectClaim(${c.claim_id})" class="text-red-400 hover:text-red-300" title="Reject">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>` : '-'}
+                        </td>
+                    </tr>`;
+            }).join('');
+        }
+
+
+        // ==================== AUTH ====================
+
+        async function logout() {
+            try { await fetch('/auth/logout', { method: 'POST' }); } catch (e) {}
+            window.location.href = '/login';
+        }
+
+        // ==================== FOUND ITEM MODE ====================
+
+        let foundMode = 'fresh';
+
+        function setFoundMode(mode) {
+            foundMode = mode;
+            const freshBtn   = document.getElementById('freshModeBtn');
+            const matchBtn   = document.getElementById('matchModeBtn');
+            const freshSec   = document.getElementById('freshSection');
+            const matchSec   = document.getElementById('matchSection');
+            const fForm      = document.getElementById('foundForm');
+            const itemName   = fForm.querySelector('[name=itemName]');
+            const category   = fForm.querySelector('[name=category]');
+            if (mode === 'fresh') {
+                freshSec.style.display = 'block';
+                matchSec.style.display = 'none';
+                freshBtn.style.background = 'var(--accent)';
+                freshBtn.style.color      = 'var(--bg)';
+                matchBtn.style.background = 'transparent';
+                matchBtn.style.color      = 'var(--muted)';
+                if (itemName) itemName.required = true;
+                if (category) category.required = true;
+            } else {
+                freshSec.style.display = 'none';
+                matchSec.style.display = 'block';
+                matchBtn.style.background = 'var(--accent)';
+                matchBtn.style.color      = 'var(--bg)';
+                freshBtn.style.background = 'transparent';
+                freshBtn.style.color      = 'var(--muted)';
+                if (itemName) itemName.required = false;
+                if (category) category.required = false;
+                loadLostItemsForMatch();
+            }
+        }
+
+        async function loadLostItemsForMatch() {
+            const select = document.getElementById('matchLostSelect');
+            select.innerHTML = '<option value="">Loading...</option>';
+            try {
+                const res   = await fetch('/lost');
+                const items = await res.json();
+                const pending = items.filter(i => i.status === 'Pending');
+                if (!pending.length) {
+                    select.innerHTML = '<option value="">No pending lost reports found</option>';
+                    return;
+                }
+                select.innerHTML = '<option value="">Select a lost report...</option>' +
+                    pending.map(i =>
+                        `<option value="${i.lost_id}"
+                            data-name="${i.item_name}"
+                            data-cat="${i.category || ''}"
+                            data-color="${i.color || ''}"
+                            data-desc="${i.description || ''}">
+                            ${i.item_name} — Lost at: ${i.location_lost || 'Unknown'}
+                        </option>`
+                    ).join('');
+                select.onchange = function () {
+                    const opt     = this.options[this.selectedIndex];
+                    const details = document.getElementById('matchedDetails');
+                    if (this.value) {
+                        document.getElementById('matchedItemName').textContent    = opt.dataset.name;
+                        document.getElementById('matchedCategory').textContent   = opt.dataset.cat  || '—';
+                        document.getElementById('matchedColor').textContent      = opt.dataset.color || '—';
+                        document.getElementById('matchedDescription').textContent = opt.dataset.desc || '—';
+                        details.style.display = 'block';
+                    } else {
+                        details.style.display = 'none';
+                    }
+                };
+            } catch (e) {
+                select.innerHTML = '<option value="">Failed to load lost reports</option>';
+            }
+        }
+
+        // ==================== SAFE FETCH HELPERS ====================
+
+        async function apiPost(url, body) {
+            const res  = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const text = await res.text();
+            let data = {};
+            try { data = JSON.parse(text); } catch { data = { message: text }; }
+            if (!res.ok) throw new Error(data.error || data.message || 'Server error');
+            return data;
+        }
+
+        async function apiPut(url) {
+            const res  = await fetch(url, { method: 'PUT' });
+            const text = await res.text();
+            let data = {};
+            try { data = JSON.parse(text); } catch { data = { message: text }; }
+            if (!res.ok) throw new Error(data.error || data.message || 'Server error');
+            return data;
+        }
+
+        async function apiDelete(url) {
+            const res  = await fetch(url, { method: 'DELETE' });
+            const text = await res.text();
+            let data = {};
+            try { data = JSON.parse(text); } catch { data = { message: text }; }
+            if (!res.ok) throw new Error(data.error || data.message || 'Server error');
+            return data;
+        }
+
+        // ==================== FORMS ====================
+
+        document.getElementById('lostForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            try {
+                await apiPost('/lost', {
+                    itemName:     this.itemName.value,
+                    category:     this.category.value,
+                    color:        this.color.value,
+                    description:  this.description.value,
+                    dateLost:     this.dateLost.value,
+                    locationLost: this.locationLost.value
+                });
+                showToast('Lost item reported successfully!');
+                this.reset();
+                closeModal('reportModal');
+                loadLostItems();
+                loadDashboard();
+            } catch (err) {
+                showToast(err.message || 'Failed to submit report', true);
+            }
+        });
+
+        document.getElementById('foundForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            try {
+                if (foundMode === 'match') {
+                    const lostReportId = document.getElementById('matchLostSelect').value;
+                    if (!lostReportId) { showToast('Please select a lost report', true); return; }
+                    await apiPost('/found', {
+                        lostReportId,
+                        dateFound:     this.dateFound.value,
+                        locationFound: this.locationFound.value
+                    });
+                    showToast('Matched! Claim auto-created for original reporter.');
+                } else {
+                    await apiPost('/found', {
+                        itemName:      this.itemName.value,
+                        category:      this.category.value,
+                        color:         this.color.value,
+                        description:   this.description.value,
+                        dateFound:     this.dateFound.value,
+                        locationFound: this.locationFound.value
+                    });
+                    showToast('Found item reported successfully!');
+                }
+                this.reset();
+                setFoundMode('fresh');
+                closeModal('foundModal');
+                loadFoundItems();
+                loadClaims();
+                loadDashboard();
+            } catch (err) {
+                showToast(err.message || 'Failed to submit report', true);
+            }
+        });
+
+
+        document.getElementById('claimForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const foundId = document.getElementById('claimFoundId').value;
+            try {
+                await apiPost('/claims', { foundId });
+                showToast('Claim submitted successfully!');
+                this.reset();
+                closeModal('claimModal');
+                loadClaims();
+                loadDashboard();
+            } catch (err) {
+                showToast(err.message || 'Failed to submit claim', true);
+            }
+        });
+
+        function openClaimModal(foundId) {
+            document.getElementById('claimFoundId').value = foundId;
+            openModal('claimModal');
+        }
+
+        // ==================== CLAIM ACTIONS ====================
+
+        async function approveClaim(claimId) {
+            try {
+                await apiPut(`/claims/approve/${claimId}`);
+                showToast('Claim approved!');
+                loadClaims();
+                loadDashboard();
+            } catch (e) { showToast(e.message || 'Failed to approve claim', true); }
+        }
+
+        async function rejectClaim(claimId) {
+            try {
+                await apiPut(`/claims/reject/${claimId}`);
+                showToast('Claim rejected.');
+                loadClaims();
+                loadDashboard();
+            } catch (e) { showToast(e.message || 'Failed to reject claim', true); }
+        }
+
+        // ==================== DELETE OPERATIONS ====================
+
+        async function deleteLostReport(id) {
+            if (!confirm('Delete this lost report?')) return;
+            try {
+                await apiDelete(`/lost/${id}`);
+                showToast('Lost report deleted.');
+                loadLostItems();
+                loadDashboard();
+            } catch (e) { showToast(e.message || 'Delete failed', true); }
+        }
+
+        async function deleteFoundReport(id) {
+            if (!confirm('Delete this found report?')) return;
+            try {
+                await apiDelete(`/found/${id}`);
+                showToast('Found report deleted.');
+                loadFoundItems();
+                loadDashboard();
+            } catch (e) { showToast(e.message || 'Delete failed', true); }
+        }
+
+
+        // ==================== SEARCH & FILTER ====================
+
+        document.getElementById('searchLost')?.addEventListener('input', filterLost);
+        document.getElementById('filterCategory')?.addEventListener('change', filterLost);
+        document.getElementById('filterStatus')?.addEventListener('change', filterLost);
+
+        function filterLost() {
+            const search   = document.getElementById('searchLost').value.toLowerCase();
+            const category = document.getElementById('filterCategory').value;
+            const status   = document.getElementById('filterStatus').value;
+            renderLostTable(lostCache.filter(r =>
+                (!search   || r.item_name.toLowerCase().includes(search) || r.location_lost.toLowerCase().includes(search)) &&
+                (!category || r.category === category) &&
+                (!status   || r.status === status)
+            ));
+        }
+
+        document.getElementById('searchFound')?.addEventListener('input', filterFound);
+        document.getElementById('filterFoundCategory')?.addEventListener('change', filterFound);
+        document.getElementById('filterFoundStatus')?.addEventListener('change', filterFound);
+
+        function filterFound() {
+            const search   = document.getElementById('searchFound').value.toLowerCase();
+            const category = document.getElementById('filterFoundCategory').value;
+            const status   = document.getElementById('filterFoundStatus').value;
+            renderFoundTable(foundCache.filter(r =>
+                (!search   || r.item_name.toLowerCase().includes(search) || r.location_found.toLowerCase().includes(search)) &&
+                (!category || r.category === category) &&
+                (!status   || r.status === status)
+            ));
+        }
+
+        document.getElementById('filterClaimStatus')?.addEventListener('change', () => {
+            const status = document.getElementById('filterClaimStatus').value;
+            renderClaimsTable(status ? claimsCache.filter(c => c.verification_status === status) : claimsCache);
+        });
+
+
+        // ==================== INIT ====================
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const authRes  = await fetch('/auth/check');
+                const authData = await authRes.json();
+                if (!authData.loggedIn) { window.location.href = '/login'; return; }
+                if (authData.username) {
+                    const el = document.getElementById('adminUsername');
+                    if (el) el.textContent = authData.username;
+                }
+            } catch (e) {
+                window.location.href = '/login';
+                return;
+            }
+
+            loadDashboard();
+            document.querySelectorAll('.glass-card').forEach((card, i) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, i * 100);
+            });
+        });
+    </script>
+</body>
+</html>
+

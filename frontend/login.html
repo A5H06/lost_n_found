@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — Lost & Found</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0f1a; --bg-secondary: #111827; --fg: #f1f5f9;
+            --muted: #64748b; --accent: #06d6a0; --accent-dim: rgba(6,214,160,0.15);
+            --card: rgba(17,24,39,0.8); --border: rgba(100,116,139,0.2); --danger: #ef4444;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--fg); min-height:100vh; display:flex; align-items:center; justify-content:center; }
+        h1,h2,h3 { font-family:'Space Grotesk',sans-serif; }
+        .bg-pattern { position:fixed; inset:0; background-image: radial-gradient(circle at 20% 30%,rgba(6,214,160,.08) 0%,transparent 50%), radial-gradient(circle at 80% 70%,rgba(59,130,246,.06) 0%,transparent 50%); pointer-events:none; z-index:0; }
+        .bg-grid { position:fixed; inset:0; background-image: linear-gradient(rgba(100,116,139,.03) 1px,transparent 1px), linear-gradient(90deg,rgba(100,116,139,.03) 1px,transparent 1px); background-size:60px 60px; pointer-events:none; z-index:0; }
+        .glass-card { background:var(--card); border:1px solid var(--border); border-radius:1.25rem; backdrop-filter:blur(20px); }
+        .input-field { width:100%; background:rgba(255,255,255,.05); border:1px solid var(--border); border-radius:.75rem; padding:.75rem 1rem; color:var(--fg); font-size:.875rem; outline:none; transition:border-color .2s; }
+        .input-field:focus { border-color:var(--accent); }
+        .btn-primary { background:var(--accent); color:#0a0f1a; border:none; border-radius:.75rem; padding:.75rem 1.5rem; font-weight:600; font-size:.875rem; cursor:pointer; width:100%; transition:opacity .2s,transform .1s; }
+        .btn-primary:hover { opacity:.9; transform:translateY(-1px); }
+        .btn-primary:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+        .error-msg { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3); color:#ef4444; padding:.75rem 1rem; border-radius:.75rem; font-size:.875rem; display:none; }
+        .success-msg { background:rgba(6,214,160,.1); border:1px solid rgba(6,214,160,.3); color:var(--accent); padding:.75rem 1rem; border-radius:.75rem; font-size:.875rem; display:none; }
+        .tab-btn { flex:1; padding:.6rem; font-size:.875rem; font-weight:600; border:none; cursor:pointer; transition:all .2s; }
+        .tab-btn.active { background:var(--accent); color:#0a0f1a; }
+        .tab-btn.inactive { background:transparent; color:var(--muted); }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    <div class="bg-grid"></div>
+
+    <div class="relative z-10 w-full max-w-md px-4">
+        <div class="glass-card p-8">
+            <!-- Logo -->
+            <div class="flex items-center gap-3 mb-8 justify-center">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--accent)] to-emerald-600 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-[var(--bg)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xl">LostFound</h1>
+                    <p class="text-xs text-[var(--muted)]">Management System</p>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex rounded-xl overflow-hidden border border-[var(--border)] mb-6">
+                <button class="tab-btn active" id="loginTab" onclick="switchTab('login')">Sign In</button>
+                <button class="tab-btn inactive" id="registerTab" onclick="switchTab('register')">Create Account</button>
+            </div>
+
+            <div id="statusMsg" class="mb-4 error-msg"></div>
+            <div id="successMsg" class="mb-4 success-msg"></div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Email or Username</label>
+                    <input type="text" id="loginEmail" class="input-field" placeholder="admin or your@email.com" autocomplete="username" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Password</label>
+                    <input type="password" id="loginPassword" class="input-field" placeholder="••••••••" autocomplete="current-password" required>
+                </div>
+                <button type="submit" class="btn-primary mt-2" id="loginBtn">Sign In</button>
+                <p class="text-center text-xs text-[var(--muted)]">
+                    Admin access: <span class="text-[var(--accent)]">admin</span> / <span class="text-[var(--accent)]">admin123</span>
+                </p>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" class="space-y-4" style="display:none">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Full Name *</label>
+                    <input type="text" id="regName" class="input-field" placeholder="John Doe" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Email Address *</label>
+                    <input type="email" id="regEmail" class="input-field" placeholder="john@example.com" autocomplete="email" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Password *</label>
+                    <input type="password" id="regPassword" class="input-field" placeholder="Min. 6 characters" autocomplete="new-password" required minlength="6">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Confirm Password *</label>
+                    <input type="password" id="regConfirm" class="input-field" placeholder="Re-enter password" autocomplete="new-password" required>
+                </div>
+                <button type="submit" class="btn-primary mt-2" id="registerBtn">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            const loginForm    = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const loginTab     = document.getElementById('loginTab');
+            const registerTab  = document.getElementById('registerTab');
+            clearMessages();
+            if (tab === 'login') {
+                loginForm.style.display    = 'block';
+                registerForm.style.display = 'none';
+                loginTab.className    = 'tab-btn active';
+                registerTab.className = 'tab-btn inactive';
+            } else {
+                loginForm.style.display    = 'none';
+                registerForm.style.display = 'block';
+                loginTab.className    = 'tab-btn inactive';
+                registerTab.className = 'tab-btn active';
+            }
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('statusMsg');
+            el.textContent = msg;
+            el.style.display = 'block';
+            document.getElementById('successMsg').style.display = 'none';
+        }
+
+        function showSuccess(msg) {
+            const el = document.getElementById('successMsg');
+            el.textContent = msg;
+            el.style.display = 'block';
+            document.getElementById('statusMsg').style.display = 'none';
+        }
+
+        function clearMessages() {
+            document.getElementById('statusMsg').style.display  = 'none';
+            document.getElementById('successMsg').style.display = 'none';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            btn.textContent = 'Signing in...'; btn.disabled = true;
+            clearMessages();
+            try {
+                const res = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: document.getElementById('loginEmail').value,
+                        password: document.getElementById('loginPassword').value
+                    })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    window.location.href = '/';
+                } else {
+                    showError(data.error || 'Invalid credentials');
+                }
+            } catch (err) {
+                showError('Server error. Make sure MySQL is running.');
+            }
+            btn.textContent = 'Sign In'; btn.disabled = false;
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name     = document.getElementById('regName').value;
+            const email    = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const confirm  = document.getElementById('regConfirm').value;
+
+            if (password !== confirm) { showError('Passwords do not match'); return; }
+            if (password.length < 6)  { showError('Password must be at least 6 characters'); return; }
+
+            const btn = document.getElementById('registerBtn');
+            btn.textContent = 'Creating account...'; btn.disabled = true;
+            clearMessages();
+            try {
+                const res = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    window.location.href = '/';
+                } else {
+                    showError(data.error || 'Registration failed');
+                }
+            } catch (err) {
+                showError('Server error. Make sure MySQL is running.');
+            }
+            btn.textContent = 'Create Account'; btn.disabled = false;
+        });
+    </script>
+</body>
+</html>
